@@ -81,19 +81,32 @@ public class UserController {
         }
     }
 
-    // done : từ token --> xác minh đc user
+    // Phương thức lấy thông tin người dùng hiện tại
     @GetMapping("/current-user")
-    public ResponseEntity<Object> getCurrentUser(@RequestHeader("Authorization") String token){
+    public ResponseEntity<Object> getCurrentUser(@RequestHeader("Authorization") String token) {
+        // Tạo một đối tượng Map để chứa phản hồi trả về
         Map<String, Object> responseBody = new HashMap<>();
         try {
-            UserEntity userEntity = userService.getUserByEmail(userService.getEmailfromToken(token.substring(7)));
-            System.out.println(userEntity);
+            // Lấy email từ token bằng cách loại bỏ tiền tố "Bearer "
+            String email = userService.getEmailfromToken(token.substring(7));
+
+            // Lấy thông tin người dùng từ email
+            UserEntity userEntity = userService.getUserByEmail(email);
+            System.out.println(userEntity); // In ra thông tin người dùng (chỉ để kiểm tra, có thể xóa trong sản phẩm)
+
+            // Chuyển đổi `UserEntity` sang `GetUserInfoDto` bằng cách sử dụng `userMapper`
             GetUserInfoDto getUserInfoDto = userMapper.entityToDto(userEntity);
+
+            // Trả về phản hồi 200 (OK) kèm theo thông tin người dùng
             return ResponseEntity.ok(getUserInfoDto);
+
         } catch (IllegalArgumentException ie) {
+            // Nếu có ngoại lệ `IllegalArgumentException`, trả về lỗi 400 (Bad Request)
             responseBody.put("error", ie.getMessage());
             return ResponseEntity.badRequest().body(responseBody);
+
         } catch (EmptyResultDataAccessException ee) {
+            // Nếu không tìm thấy người dùng, trả về lỗi 404 (Not Found)
             responseBody.put("error", ee.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         }
