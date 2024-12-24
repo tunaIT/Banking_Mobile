@@ -4,6 +4,7 @@ import 'screens/sign_in.dart';
 import 'screens/sign_up.dart';
 import 'screens/forgot_password.dart';
 import 'screens/setting.dart';
+import 'home.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         '/sign-up': (context) => SignUpScreen(),
         '/forgot-password': (context) => ForgotPasswordScreen(),
         '/setting': (context) => SettingsScreen(),
+        '/home': (context) => HomePage(),
       },
     );
   }
