@@ -215,13 +215,13 @@ class _TransferScreenState extends State<TransferScreen> {
               const SizedBox(width: 16),
               _buildBeneficiaryAvatar(
                 name: 'Emma',
-                imageUrl: 'assets/images/emma.png',
+                imageUrl: 'lib/images/emma.png',
                 isSelected: true,
               ),
               const SizedBox(width: 16),
               _buildBeneficiaryAvatar(
                 name: 'Justin',
-                imageUrl: 'assets/images/justin.png',
+                imageUrl: 'lib/images/justin.png',
                 isSelected: false,
               ),
             ],

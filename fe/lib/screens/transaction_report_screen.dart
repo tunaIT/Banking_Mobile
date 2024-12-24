@@ -103,7 +103,7 @@ class TransactionReportScreen extends StatelessWidget {
                         ),
                       ),
                       Image.asset(
-                        'assets/images/visa_logo.png',
+                        'lib/images/visa_logo.png',
                         height: 40,
                         color: Colors.white,
                       ),

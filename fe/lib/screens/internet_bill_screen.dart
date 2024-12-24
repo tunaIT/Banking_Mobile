@@ -43,7 +43,7 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
                 children: [
                   // TODO: Replace with actual illustration
                   Image.asset(
-                    'assets/images/payment_illustration.png',
+                    'lib/images/payment_illustration.png',
                     height: 200,
                   ),
                   const SizedBox(height: 16),
