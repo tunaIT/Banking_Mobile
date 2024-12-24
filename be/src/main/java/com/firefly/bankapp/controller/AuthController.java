@@ -51,41 +51,56 @@ public class AuthController {
 //        return ResponseEntity.ok(responseBody);
 //    }
 
+    // Phương thức xử lý đăng ký người dùng
     @PostMapping("/register")
     public ResponseEntity<Object> createUser(@RequestBody RegisterDto registerDto) {
+        // Tạo một đối tượng Map để chứa phản hồi trả về
         Map<String, Object> responseBody = new HashMap<>();
         try {
-
+            // Gọi phương thức tạo người dùng từ lớp `authService` và lưu kết quả vào `userEntity`
             UserEntity userEntity = authService.createUser(registerDto);
 
+            // Tạo URI để phản hồi, từ đường dẫn hiện tại, thêm email của người dùng mới
             URI location = ServletUriComponentsBuilder
                     .fromCurrentRequest()
                     .path("/{email}")
                     .buildAndExpand(registerDto.getEmail())
                     .toUri();
 
+            // Trả về phản hồi 201 (Created) kèm theo thông tin người dùng mới tạo
             return ResponseEntity.created(location).body(userEntity);
+
         } catch (IllegalArgumentException ie) {
+            // Nếu có ngoại lệ `IllegalArgumentException`, trả về lỗi 400 (Bad Request)
             responseBody.put("error", ie.getMessage());
             return ResponseEntity.badRequest().body(responseBody);
+
         } catch (DuplicateKeyException de) {
+            // Nếu có ngoại lệ `DuplicateKeyException`, trả về lỗi 409 (Conflict)
             responseBody.put("error", de.getMessage());
-            //Xác định status là 409,
-            //thường được sử dụng khi có xung đột trong yêu cầu
             return ResponseEntity.status(HttpStatus.CONFLICT).body(responseBody);
         }
     }
 
+    // Phương thức xử lý đăng nhập người dùng
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody LoginDto loginDto) {
+        // Tạo một đối tượng Map để chứa phản hồi trả về
         Map<String, Object> responseBody = new HashMap<>();
         try {
+            // Gọi phương thức đăng nhập từ lớp `authService` và lấy token phản hồi
             LoginReponseBodyDto token = authService.login(loginDto.getEmail(), loginDto.getPassword());
+
+            // Trả về phản hồi 200 (OK) kèm theo token nếu đăng nhập thành công
             return ResponseEntity.ok(token);
+
         } catch (IllegalArgumentException ie) {
+            // Nếu có ngoại lệ `IllegalArgumentException`, trả về lỗi 400 (Bad Request)
             responseBody.put("error", ie.getMessage());
             return ResponseEntity.badRequest().body(responseBody);
+
         } catch (EmptyResultDataAccessException ee) {
+            // Nếu không tìm thấy người dùng, trả về lỗi 404 (Not Found)
             responseBody.put("error", ee.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         }
