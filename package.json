@@ -1,5 +1,9 @@
 {
   "dependencies": {
+    "react-native": "^0.76.1",
     "react-native-vector-icons": "^10.2.0"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "^15.0.0"
   }
 }
