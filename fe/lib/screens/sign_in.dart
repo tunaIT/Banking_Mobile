@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart'; // Import lớp ApiService bạn đã tạo
+import 'sign_up.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -118,8 +119,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   // Gọi API đăng nhập từ ApiService
                   ApiService apiService = ApiService();
-                  final response = await apiService.login(email, password);
-
+                  final response = await apiService.login(
+                    email: email,
+                    password: password,
+                  );
                   if (response.containsKey('error')) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(response['error'])),
@@ -148,16 +151,24 @@ class _SignInScreenState extends State<SignInScreen> {
                   children: [
                     Icon(Icons.fingerprint, size: 50, color: Color(0xFF5025BF)),
                     SizedBox(height: 10),
-                    RichText(
-                      text: TextSpan(
-                        text: "Don’t have an account? ",
-                        style: TextStyle(color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text: "Sign Up",
-                            style: TextStyle(color: Color(0xFF5025BF)),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUpScreen()),
+                        );
+                      },
+                      child: RichText(
+                        text: TextSpan(
+                          text: "Don’t have an account? ",
+                          style: TextStyle(color: Colors.black),
+                          children: [
+                            TextSpan(
+                              text: "Sign Up",
+                              style: TextStyle(color: Color(0xFF5025BF)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

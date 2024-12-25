@@ -4,36 +4,63 @@ import 'package:http/http.dart' as http;
 class ApiService {
   final String baseUrl = "http://10.0.2.2:8081"; // URL cơ bản của API
 
-  // Đăng nhập
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    return await _postRequest(
-      endpoint: "/auth/login",
-      body: {'email': email, 'password': password},
-    );
-  }
-
-  // **Private method cho POST request**
-  Future<Map<String, dynamic>> _postRequest({
-    required String endpoint,
-    required Map<String, dynamic> body,
+  // Phương thức đăng nhập
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
   }) async {
+    final url = Uri.parse('$baseUrl/auth/login'); // URL API cho đăng nhập
+
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$endpoint'),
+        url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+        body: json.encode({
+          'email': email,
+          'password': password,
+        }),
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body); // Phản hồi thành công
+        // Nếu đăng nhập thành công, trả về token
+        return json.decode(response.body);
       } else {
-        return {
-          'error': jsonDecode(response.body)['error'] ??
-              'Unknown error occurred'
-        }; // Phản hồi lỗi từ server
+        // Trả về lỗi nếu có
+        return {'error': 'Login failed. Please check your credentials.'};
       }
     } catch (e) {
-      return {'error': 'Connection failed: $e'}; // Lỗi mạng hoặc lỗi khác
+      return {'error': 'An error occurred: $e'};
+    }
+  }
+
+  // Phương thức đăng ký
+  Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse('$baseUrl/auth/register'); // URL API cho đăng ký
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        // Nếu đăng ký thành công, trả về dữ liệu phản hồi
+        return json.decode(response.body);
+      } else {
+        // Trả về lỗi nếu có
+        return {'error': 'Registration failed. Please try again.'};
+      }
+    } catch (e) {
+      return {'error': 'An error occurred: $e'};
     }
   }
 }
