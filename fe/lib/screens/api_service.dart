@@ -12,7 +12,6 @@ class ApiService {
     final url = Uri.parse('$baseUrl/auth/login'); // URL API cho đăng nhập
 
     try {
-      print("😎😎😎😎$url");
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
