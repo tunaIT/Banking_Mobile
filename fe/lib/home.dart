@@ -1,7 +1,35 @@
+
 import 'package:flutter/material.dart';
+import 'screens/api_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
+}
+
+// Lấy thông tin người dùng
+Future<Map<String, dynamic>> getUserInfo(String token) async {
+  final String baseUrl = "https://cd0c-183-81-19-123.ngrok-free.app";
+  final url = Uri.parse('$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
+
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Gửi token trong header
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body); // Trả về thông tin người dùng
+    } else {
+      throw Exception('Failed to fetch user info');
+    }
+  } catch (e) {
+    return {'error': 'An error occurred: $e'};
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -20,9 +48,53 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ApiService apiService = ApiService();
+  String userName = 'Loading...'; // Tên mặc định trước khi tải
+  Map<String, dynamic> userInfo = {}; // Khai báo biến userInfo để lưu thông tin người dùng
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null && arguments.containsKey('token')) {
+      final token = arguments['token'] as String; // Lấy token từ arguments
+      fetchUserName(token);
+    } else {
+      setState(() {
+        userName = 'Token not found';
+      });
+    }
+  }
+
+  void fetchUserName(String token) async {
+    try {
+      // Gọi API để lấy thông tin người dùng
+      final fetchedUserInfo = await getUserInfo(token);  // Lấy thông tin người dùng từ API
+
+      setState(() {
+        userInfo = fetchedUserInfo;  // Cập nhật userInfo toàn cục
+        if (userInfo.containsKey('name')) {
+          userName = userInfo['name'];  // Cập nhật tên người dùng
+        } else {
+          userName = 'Unknown User';  // Gán giá trị mặc định nếu không có tên
+        }
+      });
+    } catch (e) {
+      // Xử lý lỗi (ví dụ: lỗi mạng, token không hợp lệ)
+      debugPrint('Error fetching user info: $e');
+      setState(() {
+        userName = 'Error loading name';  // Hiển thị lỗi cho người dùng
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,9 +131,9 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        'Hi, Push Puttichai',
-                        style: TextStyle(
+                      Text(
+                        'Hi, $userName', // Hiển thị tên người dùng từ API
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -123,29 +195,37 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Hiển thị tên người dùng từ API
                           Text(
-                            'John Smith',
-                            style: TextStyle(color: Colors.white, fontSize: 20),
+                            userInfo.containsKey('name') ? userInfo['name'] : 'Unknown User',
+                            style: const TextStyle(color: Colors.white, fontSize: 20),
                           ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Amazon Platinium',
+                          const SizedBox(height: 10),
+                          // Giữ nguyên tên thẻ ngân hàng
+                          const Text(
+                            'Amazon Platinum',
                             style: TextStyle(color: Colors.white70, fontSize: 14),
                           ),
-                          SizedBox(height: 30),
+                          const SizedBox(height: 30),
+                          // Hiển thị số thẻ chỉ với 4 số cuối
                           Text(
-                            '**** **** **** 9018',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            userInfo.containsKey('cardNumber')
+                                ? '**** **** **** ${userInfo['cardNumber'].substring(userInfo['cardNumber'].length - 4)}'
+                                : '**** **** **** 0000', // Giá trị mặc định nếu không có thông tin số thẻ
+                            style: const TextStyle(color: Colors.white, fontSize: 16),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
+                          // Hiển thị số dư tài khoản
                           Text(
-                            '\$3,469.52',
-                            style: TextStyle(
+                            userInfo.containsKey('balance')
+                                ? '\$${userInfo['balance']}'
+                                : '\$0.00', // Giá trị mặc định nếu không có thông tin số dư
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -157,8 +237,8 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-
+            )
+            ,
             // Grid Menu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
