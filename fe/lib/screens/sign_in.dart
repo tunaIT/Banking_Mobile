@@ -123,16 +123,31 @@ class _SignInScreenState extends State<SignInScreen> {
                     email: email,
                     password: password,
                   );
+
                   if (response.containsKey('error')) {
+                    // Hiển thị thông báo lỗi nếu có
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(response['error'])),
                     );
                   } else {
+                    // Trích xuất token từ response
+                    final String token = response['token'];
+                    final Map<String, dynamic> user = response['user'];
+
+                    // Hiển thị thông báo đăng nhập thành công
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Login successful!")),
+                      const SnackBar(content: Text("Login successful!")),
                     );
-                    // Điều hướng tới trang sau khi đăng nhập thành công
-                    Navigator.pushReplacementNamed(context, '/home');
+
+                    // Điều hướng tới trang tiếp theo và truyền token qua Navigator
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/home',
+                      arguments: {
+                        'token': token,
+                        'user': user,
+                      },
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
