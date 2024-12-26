@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/token_service.dart';
 import 'api_service.dart'; // Import lớp ApiService bạn đã tạo
 import 'sign_up.dart';
 
@@ -133,7 +134,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     // Trích xuất token từ response
                     final String token = response['token'];
                     final Map<String, dynamic> user = response['user'];
-
+// Lưu token
+                    TokenService.setToken(response['token']);
                     // Hiển thị thông báo đăng nhập thành công
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Login successful!")),
