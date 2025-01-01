@@ -25,6 +25,17 @@ public class JwtUtil {
     @Setter
     @Getter
     private String jwt;
+    public Claims getClaims(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid JWT token");
+        }
+    }
 
     // tạo ra jwt từ thông tin người dùng
     public String generateToken(UserEntity userEntity){
@@ -39,6 +50,7 @@ public class JwtUtil {
                 .setIssuedAt(now)
                 //Thiết lập thời gian hết hạn của token.
                 .setExpiration(expiryDate)
+                .claim("cardNumber", userEntity.getCardNumber())
                 //Ký token bằng thuật toán HS256 và bí mật được lấy từ phương thức getSignKey().
                 .signWith(SignatureAlgorithm.HS256, getSignKey())
                 //Hoàn tất quá trình xây dựng và trả về chuỗi JWT.
@@ -58,6 +70,16 @@ public class JwtUtil {
             throw new MalformedJwtException("Invalid token");
         }
     }
+    public String getCardNumberFromJwt(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("cardNumber", String.class);
+    }
+
+
     public boolean validateToken(String authToken, UserEntity userEntity) {
         final String email = getEmailFromJwt(authToken);
         return email.equals(userEntity.getEmail());
