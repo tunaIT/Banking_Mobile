@@ -13,7 +13,7 @@ void main() {
 
 // Lấy thông tin người dùng
 Future<Map<String, dynamic>> getUserInfo(String token) async {
-  final String baseUrl = "https://cd0c-183-81-19-123.ngrok-free.app";
+  final String baseUrl = "http://10.0.2.2:8081";
   final url = Uri.parse(
       '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
 
