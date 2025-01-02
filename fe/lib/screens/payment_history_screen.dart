@@ -1,20 +1,37 @@
+import 'package:fe/screens/api_service.dart';
 import 'package:flutter/material.dart';
 import 'payment_detail_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../services/token_service.dart';
 
 class PaymentHistory {
-  final String month;
-  final String status;
+  final int id;
+  final String forUser;
+  final String category;
   final double amount;
-  final String date;
-  final String? company;
+  final String status;
+  final DateTime created;
 
   PaymentHistory({
-    required this.month,
-    required this.status,
+    required this.id,
+    required this.forUser,
+    required this.category,
     required this.amount,
-    required this.date,
-    this.company,
+    required this.status,
+    required this.created,
   });
+
+  factory PaymentHistory.fromJson(Map<String, dynamic> json) {
+    return PaymentHistory(
+      id: json['id'],
+      forUser: json['forUser'],
+      category: json['category'],
+      amount: json['amount'].toDouble(),
+      status: json['status'],
+      created: DateTime.parse(json['created']),
+    );
+  }
 }
 
 class PaymentHistoryScreen extends StatefulWidget {
@@ -27,13 +44,48 @@ class PaymentHistoryScreen extends StatefulWidget {
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
   final List<String> _tabs = ['Electric', 'Water', 'Mobile', 'Internet'];
+  List<PaymentHistory> _allPayments = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _fetchPaymentHistory();
+  }
+
+  Future<void> _fetchPaymentHistory() async {
+    try {
+      final token = TokenService.getToken();
+      if (token == null) {
+        throw Exception('No token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiService().baseUrl}/payment/search'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        setState(() {
+          _allPayments =
+              jsonData.map((data) => PaymentHistory.fromJson(data)).toList();
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load payment history');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error fetching payment history: $e');
+    }
   }
 
   @override
@@ -57,10 +109,17 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
           tabs: _tabs.map((String tab) => Tab(text: tab)).toList(),
         ),
       ),
-      body: TabBarView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
         controller: _tabController,
         children: _tabs.map((String tab) {
-          return PaymentHistoryList(type: tab);
+          return PaymentHistoryList(
+            payments: _allPayments
+                .where((payment) =>
+            payment.category.toLowerCase() == tab.toLowerCase())
+                .toList(),
+          );
         }).toList(),
       ),
     );
@@ -68,84 +127,16 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
 }
 
 class PaymentHistoryList extends StatelessWidget {
-  final String type;
+  final List<PaymentHistory> payments;
 
-  const PaymentHistoryList({super.key, required this.type});
-
-  List<PaymentHistory> _getPaymentHistory() {
-    if (type == 'Electric') {
-      return [
-        PaymentHistory(
-            month: 'October',
-            status: 'Unsuccessfully',
-            amount: 480,
-            date: '30/10/2019'),
-        PaymentHistory(
-            month: 'September',
-            status: 'Successfully',
-            amount: 480,
-            date: '30/09/2019'),
-        PaymentHistory(
-            month: 'August',
-            status: 'Successfully',
-            amount: 480,
-            date: '30/08/2019'),
-        PaymentHistory(
-            month: 'July',
-            status: 'Successfully',
-            amount: 480,
-            date: '30/07/2019'),
-        PaymentHistory(
-            month: 'June',
-            status: 'Successfully',
-            amount: 480,
-            date: '30/06/2019'),
-        PaymentHistory(
-            month: 'May',
-            status: 'Successfully',
-            amount: 480,
-            date: '30/05/2019'),
-      ];
-    } else if (type == 'Internet') {
-      return [
-        PaymentHistory(
-            month: 'October',
-            status: 'Unsuccessfully',
-            amount: 50,
-            date: '30/10/2019',
-            company: 'Capi Telecom'),
-        PaymentHistory(
-            month: 'September',
-            status: 'Successfully',
-            amount: 50,
-            date: '30/09/2019',
-            company: 'Capi Telecom'),
-        PaymentHistory(
-            month: 'August',
-            status: 'Successfully',
-            amount: 50,
-            date: '30/08/2019',
-            company: 'Capi Telecom'),
-        PaymentHistory(
-            month: 'July',
-            status: 'Successfully',
-            amount: 50,
-            date: '30/07/2019',
-            company: 'Capi Telecom'),
-        PaymentHistory(
-            month: 'June',
-            status: 'Successfully',
-            amount: 50,
-            date: '30/06/2019',
-            company: 'Capi Telecom'),
-      ];
-    }
-    return [];
-  }
+  const PaymentHistoryList({super.key, required this.payments});
 
   @override
   Widget build(BuildContext context) {
-    final payments = _getPaymentHistory();
+    if (payments.isEmpty) {
+      return const Center(child: Text('No payment history found'));
+    }
+
     return ListView.builder(
       itemCount: payments.length,
       itemBuilder: (context, index) {
@@ -167,7 +158,7 @@ class PaymentHistoryList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    payment.month,
+                    'Payment ${payment.id}',
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -181,38 +172,38 @@ class PaymentHistoryList extends StatelessWidget {
                       Text(
                         payment.status,
                         style: TextStyle(
-                          color: payment.status == 'Successfully'
-                              ? Colors.blue
+                          color: payment.status == 'completed'
+                              ? Colors.green
+                              : payment.status == 'pending'
+                              ? Colors.orange
                               : Colors.red,
                         ),
                       ),
                     ],
                   ),
-                  if (payment.company != null) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          'Company: ',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        Text(
-                          payment.company!,
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                      ],
-                    ),
-                  ],
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        'User: ',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      Text(
+                        payment.forUser,
+                        style: const TextStyle(color: Colors.blue),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Amount: \$${payment.amount.toStringAsFixed(0)}',
+                        'Amount: \$${payment.amount.toStringAsFixed(2)}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        payment.date,
+                        '${payment.created.day}/${payment.created.month}/${payment.created.year}',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                     ],

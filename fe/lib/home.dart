@@ -1,7 +1,39 @@
+import 'package:fe/screens/pay_bill_screen.dart';
+import 'package:fe/screens/payment_history_screen.dart';
+import 'package:fe/screens/transaction_report_screen.dart';
+import 'package:fe/screens/transfer_screen.dart';
 import 'package:flutter/material.dart';
+import 'screens/api_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
+}
+
+// Lấy thông tin người dùng
+Future<Map<String, dynamic>> getUserInfo(String token) async {
+  final String baseUrl = "https://cd0c-183-81-19-123.ngrok-free.app";
+  final url = Uri.parse(
+      '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
+
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Gửi token trong header
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body); // Trả về thông tin người dùng
+    } else {
+      throw Exception('Failed to fetch user info');
+    }
+  } catch (e) {
+    return {'error': 'An error occurred: $e'};
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -20,8 +52,56 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ApiService apiService = ApiService();
+  String userName = 'Loading...'; // Tên mặc định trước khi tải
+  Map<String, dynamic> userInfo =
+      {}; // Khai báo biến userInfo để lưu thông tin người dùng
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null && arguments.containsKey('token')) {
+      final token = arguments['token'] as String; // Lấy token từ arguments
+      fetchUserName(token);
+    } else {
+      setState(() {
+        userName = 'Token not found';
+      });
+    }
+  }
+
+  void fetchUserName(String token) async {
+    try {
+      // Gọi API để lấy thông tin người dùng
+      final fetchedUserInfo =
+          await getUserInfo(token); // Lấy thông tin người dùng từ API
+
+      setState(() {
+        userInfo = fetchedUserInfo; // Cập nhật userInfo toàn cục
+        if (userInfo.containsKey('name')) {
+          userName = userInfo['name']; // Cập nhật tên người dùng
+        } else {
+          userName = 'Unknown User'; // Gán giá trị mặc định nếu không có tên
+        }
+      });
+    } catch (e) {
+      // Xử lý lỗi (ví dụ: lỗi mạng, token không hợp lệ)
+      debugPrint('Error fetching user info: $e');
+      setState(() {
+        userName = 'Error loading name'; // Hiển thị lỗi cho người dùng
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +116,8 @@ class HomePage extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
           BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Messages"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: "Settings"),
         ],
       ),
       body: SingleChildScrollView(
@@ -45,7 +126,8 @@ class HomePage extends StatelessWidget {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.only(top: 60, left: 16, right: 16, bottom: 10),
+              padding: const EdgeInsets.only(
+                  top: 60, left: 16, right: 16, bottom: 10),
               color: Colors.blue.shade800,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,9 +141,9 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        'Hi, Push Puttichai',
-                        style: TextStyle(
+                      Text(
+                        'Hi, $userName', // Hiển thị tên người dùng từ API
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -71,7 +153,8 @@ class HomePage extends StatelessWidget {
                   ),
                   Stack(
                     children: [
-                      const Icon(Icons.notifications, color: Colors.white, size: 28),
+                      const Icon(Icons.notifications,
+                          color: Colors.white, size: 28),
                       Positioned(
                         right: 0,
                         child: Container(
@@ -123,29 +206,44 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Hiển thị tên người dùng từ API
                           Text(
-                            'John Smith',
-                            style: TextStyle(color: Colors.white, fontSize: 20),
+                            userInfo.containsKey('name')
+                                ? userInfo['name']
+                                : 'Unknown User',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 20),
                           ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Amazon Platinium',
-                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                          const SizedBox(height: 10),
+                          // Giữ nguyên tên thẻ ngân hàng
+                          const Text(
+                            'Amazon Platinum',
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 14),
                           ),
-                          SizedBox(height: 30),
+                          const SizedBox(height: 30),
+                          // Hiển thị số thẻ chỉ với 4 số cuối
                           Text(
-                            '**** **** **** 9018',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            userInfo.containsKey('cardNumber')
+                                ? '**** **** **** ${userInfo['cardNumber'].substring(userInfo['cardNumber'].length - 4)}'
+                                : '**** **** **** 0000',
+                            // Giá trị mặc định nếu không có thông tin số thẻ
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 16),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
+                          // Hiển thị số dư tài khoản
                           Text(
-                            '\$3,469.52',
-                            style: TextStyle(
+                            userInfo.containsKey('balance')
+                                ? '\$${userInfo['balance']}'
+                                : '\$0.00',
+                            // Giá trị mặc định nếu không có thông tin số dư
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -158,7 +256,6 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
             // Grid Menu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -168,16 +265,73 @@ class HomePage extends StatelessWidget {
                 crossAxisCount: 3,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                children: const [
-                  MenuCard(icon: Icons.account_balance_wallet, label: "Account and Card"),
-                  MenuCard(icon: Icons.compare_arrows, label: "Transfer"),
-                  MenuCard(icon: Icons.atm, label: "Withdraw"),
-                  MenuCard(icon: Icons.phone_android, label: "Mobile prepaid"),
-                  MenuCard(icon: Icons.payment, label: "Pay the bill"),
-                  MenuCard(icon: Icons.savings, label: "Save online"),
-                  MenuCard(icon: Icons.credit_card, label: "Credit card"),
-                  MenuCard(icon: Icons.receipt_long, label: "Transaction report"),
-                  MenuCard(icon: Icons.person_add_alt_1, label: "Beneficiary"),
+                children: [
+                  MenuCard(
+                    icon: Icons.account_balance_wallet,
+                    label: "Account and Card",
+                    onTap: () {},
+                  ),
+                  MenuCard(
+                    icon: Icons.compare_arrows,
+                    label: "Transfer",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TransferScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  MenuCard(
+                    icon: Icons.atm,
+                    label: "Withdraw",
+                    onTap: () {},
+                  ),
+                  MenuCard(
+                    icon: Icons.phone_android,
+                    label: "Mobile prepaid",
+                    onTap: () {},
+                  ),
+                  MenuCard(
+                    icon: Icons.payment,
+                    label: "Pay the Bill",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaymentHistoryScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  MenuCard(
+                    icon: Icons.savings,
+                    label: "Save online",
+                    onTap: () {},
+                  ),
+                  MenuCard(
+                    icon: Icons.credit_card,
+                    label: "Credit card",
+                    onTap: () {},
+                  ),
+                  MenuCard(
+                    icon: Icons.receipt_long,
+                    label: "Transaction report",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TransactionReportScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  MenuCard(
+                    icon: Icons.person_add_alt_1,
+                    label: "Beneficiary",
+                    onTap: () {},
+                  ),
                 ],
               ),
             ),
@@ -192,29 +346,37 @@ class HomePage extends StatelessWidget {
 class MenuCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onTap; // Thêm callback onTap
 
-  const MenuCard({super.key, required this.icon, required this.label});
+  const MenuCard(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: onTap, // Kích hoạt callback khi nhấn
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Icon(icon, color: Colors.blue, size: 28),
           ),
-          padding: const EdgeInsets.all(12),
-          child: Icon(icon, color: Colors.blue, size: 28),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: Colors.black54),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
+      ),
     );
   }
 }
