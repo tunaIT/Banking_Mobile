@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart'; // Import lớp ApiService bạn đã tạo
 import 'sign_up.dart';
+import 'forgot_password.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -23,12 +24,6 @@ class _SignInScreenState extends State<SignInScreen> {
         elevation: 0,
         title: Text("Sign in"),
         foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -96,7 +91,15 @@ class _SignInScreenState extends State<SignInScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
                   child: Text(
                     "Forgot your password?",
                     style: TextStyle(color: Color(0xFF5025BF)),

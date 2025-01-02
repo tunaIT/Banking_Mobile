@@ -71,7 +71,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    SignInScreen(),
+              ),
+            );
           },
         ),
       ),
