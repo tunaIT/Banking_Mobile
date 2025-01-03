@@ -1,3 +1,4 @@
+import 'package:fe/screens/bill_payment_screen.dart';
 import 'package:fe/screens/pay_bill_screen.dart';
 import 'package:fe/screens/payment_history_screen.dart';
 import 'package:fe/screens/transaction_report_screen.dart';
@@ -309,7 +310,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const PaymentHistoryScreen(),
+                          builder: (context) => const BillPaymentScreen(),
                         ),
                       );
                     },
