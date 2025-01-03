@@ -146,7 +146,7 @@ class PaymentHistoryList extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const PaymentDetailScreen(),
+                builder: (context) => PaymentDetailScreen(model: payment,),
               ),
             );
           },

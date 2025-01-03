@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/bill_item.dart';
 
-class BillPaymentScreen extends StatelessWidget {
+class   extends StatelessWidget {
   const BillPaymentScreen({super.key});
 
   @override
