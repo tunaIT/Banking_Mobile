@@ -1,7 +1,9 @@
+import 'package:fe/screens/payment_history_screen.dart';
 import 'package:flutter/material.dart';
 
 class PaymentDetailScreen extends StatelessWidget {
-  const PaymentDetailScreen({super.key});
+  final PaymentHistory model;
+  const PaymentDetailScreen({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
@@ -23,23 +25,15 @@ class PaymentDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildInfoRow('Name', 'Jackson Maine'),
+                _buildInfoRow('Name', '${model.forUser}'),
                 const SizedBox(height: 16),
-                _buildInfoRow('Address', '403 East 4th Street,\nSanta Ana'),
+                _buildInfoRow('Created', '${model.created}'),
                 const SizedBox(height: 16),
-                _buildInfoRow('Phone number', '+8424599721'),
+                _buildInfoRow('Status', '${model.status}'),
                 const SizedBox(height: 16),
-                _buildInfoRow('Code', '#2343543'),
+                _buildPriceRow('${model.category} fee', model.amount),
                 const SizedBox(height: 16),
-                _buildInfoRow('From', '01/10/2019'),
-                const SizedBox(height: 16),
-                _buildInfoRow('To', '01/11/2019'),
-                const SizedBox(height: 24),
-                _buildPriceRow('Internet fee', 50),
-                const SizedBox(height: 16),
-                _buildPriceRow('Tax', 10),
-                const Divider(height: 32),
-                _buildTotalRow(60),
+                _buildTotalRow(model.amount),
               ],
             ),
           ),
