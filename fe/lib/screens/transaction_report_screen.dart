@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Transaction {
   final String title;
@@ -18,8 +21,80 @@ class Transaction {
   });
 }
 
-class TransactionReportScreen extends StatelessWidget {
+// Lấy thông tin người dùng
+Future<Map<String, dynamic>> getUserInfo(String token) async {
+  final String baseUrl = "http://10.0.2.2:8081";
+  final url = Uri.parse(
+      '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
+
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Gửi token trong header
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body); // Trả về thông tin người dùng
+    } else {
+      throw Exception('Failed to fetch user info');
+    }
+  } catch (e) {
+    return {'error': 'An error occurred: $e'};
+  }
+}
+
+class TransactionReportScreen extends StatefulWidget {
   const TransactionReportScreen({super.key});
+
+  @override
+  State<TransactionReportScreen> createState() => _TransactionReportScreen();
+}
+
+class _TransactionReportScreen extends State<TransactionReportScreen> {
+  final ApiService apiService = ApiService();
+  String userName = 'Loading...'; // Tên mặc định trước khi tải
+  Map<String, dynamic> userInfo =
+  {}; // Khai báo biến userInfo để lưu thông tin người dùng
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null && arguments.containsKey('token')) {
+      final token = arguments['token'] as String; // Lấy token từ arguments
+      fetchUserName(token);
+    } else {
+      setState(() {
+        userName = 'Token not found';
+      });
+    }
+  }
+  void fetchUserName(String token) async {
+    try {
+      // Gọi API để lấy thông tin người dùng
+      final fetchedUserInfo =
+      await getUserInfo(token); // Lấy thông tin người dùng từ API
+
+      setState(() {
+        userInfo = fetchedUserInfo; // Cập nhật userInfo toàn cục
+        if (userInfo.containsKey('name')) {
+          userName = userInfo['name']; // Cập nhật tên người dùng
+        } else {
+          userName = 'Unknown User'; // Gán giá trị mặc định nếu không có tên
+        }
+      });
+    } catch (e) {
+      // Xử lý lỗi (ví dụ: lỗi mạng, token không hợp lệ)
+      debugPrint('Error fetching user info: $e');
+      setState(() {
+        userName = 'Error loading name'; // Hiển thị lỗi cho người dùng
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +146,10 @@ class TransactionReportScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'John Smith',
+                  Text(
+                    userInfo.containsKey('name')
+                        ? userInfo['name']
+                        : 'Unknown User',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -95,8 +172,10 @@ class TransactionReportScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '4756 •••• •••• 9018',
+                      Text(
+                        userInfo.containsKey('cardNumber')
+                            ? '**** **** **** ${userInfo['cardNumber'].substring(userInfo['cardNumber'].length - 4)}'
+                            : '**** **** **** 0000',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -110,8 +189,10 @@ class TransactionReportScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '\$3,469.52',
+                  Text(
+                    userInfo.containsKey('balance')
+                        ? '\$${userInfo['balance']}'
+                        : '\$0.00',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
