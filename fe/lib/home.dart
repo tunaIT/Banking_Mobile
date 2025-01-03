@@ -64,15 +64,16 @@ class _HomePageState extends State<HomePage> {
   String userName = 'Loading...'; // Tên mặc định trước khi tải
   Map<String, dynamic> userInfo =
       {}; // Khai báo biến userInfo để lưu thông tin người dùng
+  String? token;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final arguments =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (arguments != null && arguments.containsKey('token')) {
-      final token = arguments['token'] as String; // Lấy token từ arguments
-      fetchUserName(token);
+      token = arguments['token'] as String; // Lưu token vào biến cấp lớp
+      fetchUserName(token!); // Gọi API với token
     } else {
       setState(() {
         userName = 'Token not found';
@@ -269,7 +270,15 @@ class _HomePageState extends State<HomePage> {
                   MenuCard(
                     icon: Icons.account_balance_wallet,
                     label: "Account and Card",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TransactionReportScreen(),
+                          settings: RouteSettings(arguments: {'token': token}), // Truyền token
+                        ),
+                      );
+                    },
                   ),
                   MenuCard(
                     icon: Icons.compare_arrows,
@@ -319,13 +328,21 @@ class _HomePageState extends State<HomePage> {
                     icon: Icons.receipt_long,
                     label: "Transaction report",
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TransactionReportScreen(),
-                        ),
-                      );
+                      if (token != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TransactionReportScreen(),
+                            settings: RouteSettings(arguments: {'token': token}), // Truyền token
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Token not available")),
+                        );
+                      }
                     },
+
                   ),
                   MenuCard(
                     icon: Icons.person_add_alt_1,
