@@ -126,7 +126,7 @@ public class AuthController {
     @PostMapping("/changePassword")
     public ApiResponse<ResponseEntity<String>> changePassword(@RequestBody ChangePasswordRequest request) {
         return ApiResponse.<ResponseEntity<String>>builder()
-                .result(authService.changePassword(request.getEmail(), request.getOldPassword(), request))
+                .result(authService.changePassword(request.getEmail(), request))
                 .build();
     }
 }

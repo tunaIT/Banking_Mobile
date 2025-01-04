@@ -200,11 +200,9 @@ public class AuthService {
         return random.nextInt(100_000, 999_999);
     }
 
-    public ResponseEntity<String> changePassword(String email, String oldPassword, ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<String> changePassword(String email, ChangePasswordRequest changePasswordRequest) {
         UserEntity user = userDao.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
-        if (!user.getPassword().equals(oldPassword))
-            throw new AppException(ErrorCode.REPEAT_PASSWORD_INVALID);
 
         if (!changePasswordRequest.getPassword().equals(changePasswordRequest.getRepeatPassword())) {
             throw new AppException(ErrorCode.REPEAT_PASSWORD_INVALID);
