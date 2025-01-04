@@ -1,7 +1,10 @@
+import 'package:fe/screens/bill_payment_screen.dart';
 import 'package:fe/screens/pay_bill_screen.dart';
 import 'package:fe/screens/payment_history_screen.dart';
 import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:fe/screens/transfer_screen.dart';
+import 'package:fe/screens/QRScannerScreen.dart';
+
 import 'package:flutter/material.dart';
 import 'screens/api_service.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +16,7 @@ void main() {
 
 // Lấy thông tin người dùng
 Future<Map<String, dynamic>> getUserInfo(String token) async {
-  final String baseUrl = "https://cd0c-183-81-19-123.ngrok-free.app";
+  final String baseUrl = "http://10.0.2.2:8081";
   final url = Uri.parse(
       '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
 
@@ -64,15 +67,16 @@ class _HomePageState extends State<HomePage> {
   String userName = 'Loading...'; // Tên mặc định trước khi tải
   Map<String, dynamic> userInfo =
       {}; // Khai báo biến userInfo để lưu thông tin người dùng
+  String? token;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final arguments =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (arguments != null && arguments.containsKey('token')) {
-      final token = arguments['token'] as String; // Lấy token từ arguments
-      fetchUserName(token);
+      token = arguments['token'] as String; // Lưu token vào biến cấp lớp
+      fetchUserName(token!); // Gọi API với token
     } else {
       setState(() {
         userName = 'Token not found';
@@ -112,10 +116,26 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
+        // onTap: (index) async {
+        //   if (index == 1) { // Label "Quét QR" nằm ở vị trí thứ 1
+        //     final result = await Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => const QRScannerScreen(),
+        //       ),
+        //     );
+        //
+        //     if (result != null) {
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         SnackBar(content: Text("QR Code Scanned: $result")),
+        //       );
+        //     }
+        //   }
+        // },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Messages"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Quét QR"),
+          BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Nhận tiền"),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: "Settings"),
         ],
@@ -269,7 +289,15 @@ class _HomePageState extends State<HomePage> {
                   MenuCard(
                     icon: Icons.account_balance_wallet,
                     label: "Account and Card",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TransactionReportScreen(),
+                          settings: RouteSettings(arguments: {'token': token}), // Truyền token
+                        ),
+                      );
+                    },
                   ),
                   MenuCard(
                     icon: Icons.compare_arrows,
@@ -300,7 +328,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const PaymentHistoryScreen(),
+                          builder: (context) => const BillPaymentScreen(),
                         ),
                       );
                     },
@@ -319,13 +347,21 @@ class _HomePageState extends State<HomePage> {
                     icon: Icons.receipt_long,
                     label: "Transaction report",
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TransactionReportScreen(),
-                        ),
-                      );
+                      if (token != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TransactionReportScreen(),
+                            settings: RouteSettings(arguments: {'token': token}), // Truyền token
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Token not available")),
+                        );
+                      }
                     },
+
                   ),
                   MenuCard(
                     icon: Icons.person_add_alt_1,

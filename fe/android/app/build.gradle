@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.fe"
+    namespace = "com.example.fe"  // Đảm bảo namespace khớp với tên package trong AndroidManifest
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
