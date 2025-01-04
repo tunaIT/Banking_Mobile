@@ -3,6 +3,8 @@ import 'package:fe/screens/pay_bill_screen.dart';
 import 'package:fe/screens/payment_history_screen.dart';
 import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:fe/screens/transfer_screen.dart';
+import 'package:fe/screens/QRScannerScreen.dart';
+
 import 'package:flutter/material.dart';
 import 'screens/api_service.dart';
 import 'package:http/http.dart' as http;
@@ -114,10 +116,26 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
+        // onTap: (index) async {
+        //   if (index == 1) { // Label "Quét QR" nằm ở vị trí thứ 1
+        //     final result = await Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => const QRScannerScreen(),
+        //       ),
+        //     );
+        //
+        //     if (result != null) {
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         SnackBar(content: Text("QR Code Scanned: $result")),
+        //       );
+        //     }
+        //   }
+        // },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Messages"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Quét QR"),
+          BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Nhận tiền"),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: "Settings"),
         ],
