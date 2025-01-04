@@ -16,8 +16,8 @@ public class BillService {
     private final UserService userService;
     private final PaymentService paymentService;
 
-    public BillEntity getBill(String code, String category) {
-        return billDao.findByCodeAndCategory(code, category).orElseThrow(() -> new EmptyResultDataAccessException("Bill not found", 1));
+    public BillEntity getBill(String code) {
+        return billDao.findByCode(code).orElseThrow(() -> new EmptyResultDataAccessException("Bill not found", 1));
     }
 
     public void payBill(String code, String token) {

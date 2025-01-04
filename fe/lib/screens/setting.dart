@@ -1,8 +1,74 @@
 import 'package:fe/screens/change_password.dart';
+import 'package:fe/screens/sign_in.dart';
 import 'package:flutter/material.dart';
-
-class SettingsScreen extends StatelessWidget {
+import 'payment_history_screen.dart';
+import 'package:fe/home.dart';
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  _SettingsScreenState createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  int _selectedIndex = 3; // Mặc định chọn mục Settings
+  String userName = 'Loading...'; // Hiển thị tên mặc định trước khi tải
+  String? token;
+
+  // Phương thức xử lý điều hướng khi nhấn vào các mục BottomNavigationBar
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Điều hướng đến các màn hình khác tùy theo mục đã chọn
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()), // Thay bằng màn hình Home của bạn
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PaymentHistoryScreen()), // Thay bằng màn hình Email của bạn
+        );
+        break;
+      case 3:
+      // Giữ lại màn hình Settings
+        break;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null && arguments.containsKey('token')) {
+      token = arguments['token']; // Nhận token từ arguments
+      fetchUserName(token!); // Gọi API để lấy thông tin người dùng khi có token
+    }
+  }
+
+  void fetchUserName(String token) async {
+    try {
+      // Giả sử bạn đã có phương thức getUserInfo để gọi API
+      final fetchedUserInfo = await getUserInfo(token); // Gọi API với token
+      setState(() {
+        if (fetchedUserInfo.containsKey('name')) {
+          userName = fetchedUserInfo['name']; // Cập nhật tên người dùng
+        } else {
+          userName = 'Unknown User'; // Nếu không có tên, hiển thị Unknown User
+        }
+      });
+    } catch (e) {
+      debugPrint('Error fetching user info: $e');
+      setState(() {
+        userName = 'Error loading name'; // Hiển thị thông báo lỗi nếu không tải được tên
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +94,7 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     Center(
                       child: Text(
-                        "Push Puttichai",
+                        userName, // Hiển thị tên người dùng lấy từ API
                         style: TextStyle(
                           color: Color(0xFF2136D6),
                           fontSize: 18,
@@ -63,12 +129,21 @@ class SettingsScreen extends StatelessWidget {
                       trailingText: "19008989",
                       onTap: () {},
                     ),
+                    _buildSettingsItem(
+                      title: "Log Out",
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignInScreen()),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
             ),
           ),
-          // Avatar nằm giữa AppBar và khung trắng
+          // Avatar giữa AppBar và khung trắng
           Positioned(
             top: 40,
             child: CircleAvatar(
@@ -76,7 +151,7 @@ class SettingsScreen extends StatelessWidget {
               backgroundColor: Colors.white,
               child: CircleAvatar(
                 radius: 46,
-                backgroundImage: AssetImage('lib/images/avatar.png'), // Đường dẫn đến ảnh
+                backgroundImage: AssetImage('lib/images/avatar.png'), // Đường dẫn đến ảnh avatar
               ),
             ),
           ),
@@ -104,11 +179,12 @@ class SettingsScreen extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: 3,
+        currentIndex: _selectedIndex,
         selectedItemColor: Color(0xFF2136D6),
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
         showUnselectedLabels: false,
+        onTap: _onItemTapped, // Xử lý sự kiện khi nhấn vào các mục trong BottomNavigationBar
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: ""),
@@ -119,7 +195,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // Hàm tạo mục cài đặt với hiệu ứng chạm (ripple effect)
+  // Phương thức tạo mục cài đặt với hiệu ứng ripple
   Widget _buildSettingsItem({
     required String title,
     VoidCallback? onTap,
@@ -128,7 +204,7 @@ class SettingsScreen extends StatelessWidget {
     return Material(
       color: Colors.transparent, // Không ảnh hưởng đến màu nền
       child: InkWell(
-        onTap: onTap, // Thêm hành động cho sự kiện chạm
+        onTap: onTap, // Thêm hành động khi chạm vào
         borderRadius: BorderRadius.circular(10), // Thiết lập border radius cho hiệu ứng ripple
         child: ListTile(
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

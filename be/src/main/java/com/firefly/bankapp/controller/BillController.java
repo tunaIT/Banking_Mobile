@@ -20,10 +20,10 @@ public class BillController {
     private final BillService billService;
 
     @GetMapping("/{code}")
-    public ResponseEntity<Object> transfer(@PathVariable String code, @RequestParam("category") String category) {
+    public ResponseEntity<Object> transfer(@PathVariable String code) {
         Map<String, Object> responseBody = new HashMap<>();
         try {
-            BillEntity billEntity = billService.getBill(code, category);
+            BillEntity billEntity = billService.getBill(code);
             return ResponseEntity.ok(billEntity);
         } catch (EmptyResultDataAccessException ee) {
             responseBody.put("error", ee.getMessage());
