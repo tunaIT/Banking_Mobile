@@ -3,6 +3,9 @@ package com.firefly.bankapp.controller;
 import com.firefly.bankapp.dto.LoginDto;
 import com.firefly.bankapp.dto.LoginReponseBodyDto;
 import com.firefly.bankapp.dto.RegisterDto;
+import com.firefly.bankapp.dto.request.ChangePasswordRequest;
+import com.firefly.bankapp.dto.request.VerifyOtpRequest;
+import com.firefly.bankapp.dto.response.ApiResponse;
 import com.firefly.bankapp.entity.UserEntity;
 import com.firefly.bankapp.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -104,5 +107,26 @@ public class AuthController {
             responseBody.put("error", "Có lỗi xảy ra khi tạo mã QR");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
+    }
+
+    @PostMapping("/verifyEmail/{email}")
+    public ApiResponse<ResponseEntity<String>> verifyEmail(@PathVariable String email) {
+        return ApiResponse.<ResponseEntity<String>>builder()
+                .result(authService.verifyEmail(email))
+                .build();
+    }
+
+    @PostMapping("/verifyOtp")
+    public ApiResponse<ResponseEntity<String>> verifyOtp(@RequestBody VerifyOtpRequest request) {
+        return ApiResponse.<ResponseEntity<String>>builder()
+                .result(authService.verifyOtp(request.getEmail(), request.getOtp()))
+                .build();
+    }
+
+    @PostMapping("/changePassword")
+    public ApiResponse<ResponseEntity<String>> changePassword(@RequestBody ChangePasswordRequest request) {
+        return ApiResponse.<ResponseEntity<String>>builder()
+                .result(authService.changePassword(request.getEmail(), request.getOldPassword(), request))
+                .build();
     }
 }
