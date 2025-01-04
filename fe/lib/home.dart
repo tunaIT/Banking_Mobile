@@ -116,22 +116,22 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        onTap: (index) async {
-          if (index == 1) { // Label "Quét QR" nằm ở vị trí thứ 1
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const QRScannerScreen(),
-              ),
-            );
-
-            if (result != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("QR Code Scanned: $result")),
-              );
-            }
-          }
-        },
+        // onTap: (index) async {
+        //   if (index == 1) { // Label "Quét QR" nằm ở vị trí thứ 1
+        //     final result = await Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => const QRScannerScreen(),
+        //       ),
+        //     );
+        //
+        //     if (result != null) {
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         SnackBar(content: Text("QR Code Scanned: $result")),
+        //       );
+        //     }
+        //   }
+        // },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Quét QR"),
