@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 
-class InternetBillScreen extends StatefulWidget {
-  const InternetBillScreen({super.key});
+class BillScreen extends StatefulWidget {
+  const BillScreen({super.key});
 
   @override
-  State<InternetBillScreen> createState() => _InternetBillScreenState();
+  State<BillScreen> createState() => _BillScreenState();
 }
 
-class _InternetBillScreenState extends State<InternetBillScreen> {
+class _BillScreenState extends State<BillScreen> {
   String? _selectedAccount;
   final _otpController = TextEditingController();
-  final List<String> _accounts = [
-    'Account 1 (**** 1234)',
-    'Account 2 (**** 5678)',
-    'Credit Card (**** 9012)',
-  ];
 
   @override
   void dispose() {
@@ -93,81 +88,9 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey[300]!),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedAccount,
-              hint: const Text(
-                'Choose account/ card',
-                style: TextStyle(color: Colors.grey),
-              ),
-              isExpanded: true,
-              items: _accounts.map((String account) {
-                return DropdownMenuItem<String>(
-                  value: account,
-                  child: Text(account),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedAccount = newValue;
-                });
-              },
-            ),
-          ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          'Get OTP to verify transaction',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _otpController,
-                decoration: InputDecoration(
-                  hintText: 'OTP',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            TextButton(
-              onPressed: () {
-                // TODO: Handle resend OTP
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.grey[100],
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Resend',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
+        // const SizedBox(height: 24),
         ElevatedButton(
           onPressed: () {
             // TODO: Handle payment

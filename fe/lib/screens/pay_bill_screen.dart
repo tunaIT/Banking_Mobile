@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'package:fe/screens/bill_screen.dart';
 import 'package:flutter/material.dart';
+import '../services/token_service.dart';
+import 'api_service.dart';
+import 'package:http/http.dart' as http;
 
 class PayBillScreen extends StatefulWidget {
   const PayBillScreen({super.key});
@@ -13,6 +18,8 @@ class _PayBillScreenState extends State<PayBillScreen> {
   final _billCodeController = TextEditingController();
 
   final List<String> _companies = ['Capi Telecom', 'VNPay', 'Momo', 'ZaloPay'];
+  bool _isLoading = false;
+  String? _statusMessage;
 
   @override
   void dispose() {
@@ -21,10 +28,53 @@ class _PayBillScreenState extends State<PayBillScreen> {
   }
 
   void _handleCheck() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Handle check logic
-      print('Company: $_selectedCompany');
-      print('Bill Code: ${_billCodeController.text}');
+    // TODO: Handle check logic
+    print('Company: $_selectedCompany');
+    print('Bill Code: ${_billCodeController.text}');
+    _fetchPayBillCheck();
+  }
+
+  Future<void> _fetchPayBillCheck() async {
+    try {
+      final token = TokenService.getToken();
+      if (token == null) {
+        throw Exception('No token found');
+      }
+      Uri uri = Uri.parse(
+          '${ApiService().baseUrl}/bill/${_billCodeController.text}/pay');
+      print(uri.toString());
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BillScreen(),
+          ),
+        );
+        print('Response data success'); // Xử lý thêm nếu cần
+      } else {
+
+        print('Response data fail');
+        setState(() {
+          _statusMessage =
+              'Failed to retrieve bill information. Error: ${response.reasonPhrase}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'An error occurred: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -126,7 +176,7 @@ class _PayBillScreenState extends State<PayBillScreen> {
               ElevatedButton(
                 onPressed: _handleCheck,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
+                  backgroundColor: Colors.blueAccent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -135,8 +185,9 @@ class _PayBillScreenState extends State<PayBillScreen> {
                 child: const Text(
                   'Check',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white
                   ),
                 ),
               ),
