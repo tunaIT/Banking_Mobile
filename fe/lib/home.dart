@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'screens/api_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'screens/setting.dart';
 
 void main() {
   runApp(const MyApp());
@@ -116,20 +117,37 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        // onTap: (index) async {
-        //   if (index == 1) { // Label "Quét QR" nằm ở vị trí thứ 1
-        //     final result = await Navigator.push(
-        //       context,
-        //       MaterialPageRoute(
-        //         builder: (context) => const QRScannerScreen(),
-        //       ),
-        //     );
-        //
-        //     if (result != null) {
-        //       ScaffoldMessenger.of(context).showSnackBar(
-        //         SnackBar(content: Text("QR Code Scanned: $result")),
-        //       );
-        //     }
+        onTap: (index) {
+          switch (index) {
+            case 0: // Home
+              break;
+            // case 1: // Quét QR
+            //   Navigator.push(
+            //     context,
+            //     MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+            //   );
+              break;
+            case 2: // Nhận tiền
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PaymentHistoryScreen()),
+              );
+              break;
+            case 3: // Settings
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'token': token, // Truyền token để gọi API trong Settings
+                    },
+                  ),
+                ),
+              );
+              break;
+          }
+        },//     }
         //   }
         // },
         items: const [
