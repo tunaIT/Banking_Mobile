@@ -1,9 +1,15 @@
 package com.firefly.bankapp.service;
 
+import com.firefly.bankapp.dao.ForgotPasswordRepository;
 import com.firefly.bankapp.dao.UserDao;
 import com.firefly.bankapp.dto.LoginReponseBodyDto;
 import com.firefly.bankapp.dto.RegisterDto;
+import com.firefly.bankapp.dto.request.ChangePasswordRequest;
+import com.firefly.bankapp.entity.EmailDetails;
+import com.firefly.bankapp.entity.ForgotPasswordEntity;
 import com.firefly.bankapp.entity.UserEntity;
+import com.firefly.bankapp.exception.AppException;
+import com.firefly.bankapp.exception.ErrorCode;
 import com.firefly.bankapp.mapper.UserMapper;
 import com.firefly.bankapp.util.JwtUtil;
 import com.google.zxing.BarcodeFormat;
@@ -12,27 +18,33 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 import javax.imageio.ImageIO;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final UserDao userDao;
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
+    private final EmailService emailService;
+    private final ForgotPasswordRepository forgotPasswordRepository;
 
     // Phương thức giải mã token và lấy số tài khoản
     public String getCardNumberFromToken(String token) {
@@ -147,5 +159,55 @@ public class AuthService {
             }
         }
         return image;
+    }
+
+    public ResponseEntity<String> verifyEmail(String email) {
+        UserEntity user = userDao.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Email is not found"));
+        int otp = optGenerator();
+
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(email)
+                .msgBody("This is the OTP for your Forgot Password request: " + otp)
+                .subject("OTP for Forgot Password request")
+                .build();
+
+        ForgotPasswordEntity forgotPasswordEntity = ForgotPasswordEntity.builder()
+                .otp(otp)
+                .expirationTime(new Date(System.currentTimeMillis() + 70 * 1000))
+                .user(user)
+                .build();
+        emailService.sendSimpleMail(emailDetails);
+        forgotPasswordRepository.save(forgotPasswordEntity);
+        return ResponseEntity.ok("Email sent for verification!");
+    }
+
+    public ResponseEntity<String> verifyOtp(String email, int otp) {
+        UserEntity user = userDao.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+        ForgotPasswordEntity fp = forgotPasswordRepository.findByUserAndOtp(user, otp)
+                .orElseThrow(() -> new AppException(ErrorCode.OTP_INVALID));
+        if (fp.getExpirationTime().before(Date.from(Instant.now()))) {
+            forgotPasswordRepository.deleteById(fp.getId());
+            throw new AppException(ErrorCode.OTP_EXPIRED);
+        }
+
+        return ResponseEntity.ok("OTP verified!");
+    }
+
+    private int optGenerator() {
+        Random random = new Random();
+        return random.nextInt(100_000, 999_999);
+    }
+
+    public ResponseEntity<String> changePassword(String email, ChangePasswordRequest changePasswordRequest) {
+        UserEntity user = userDao.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        if (!changePasswordRequest.getPassword().equals(changePasswordRequest.getRepeatPassword())) {
+            throw new AppException(ErrorCode.REPEAT_PASSWORD_INVALID);
+        }
+        userDao.updatePassword(email, changePasswordRequest.getPassword());
+        return ResponseEntity.ok("Password has been changed!");
     }
 }

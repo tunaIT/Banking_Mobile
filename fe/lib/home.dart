@@ -3,7 +3,7 @@ import 'package:fe/screens/pay_bill_screen.dart';
 import 'package:fe/screens/payment_history_screen.dart';
 import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:fe/screens/transfer_screen.dart';
-import 'package:fe/screens/QRScannerScreen.dart';
+// import 'package:fe/screens/QRScannerScreen.dart';
 
 import 'package:flutter/material.dart';
 import 'screens/api_service.dart';
