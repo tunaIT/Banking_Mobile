@@ -1,5 +1,6 @@
 import 'package:fe/screens/change_password.dart';
 import 'package:fe/screens/sign_in.dart';
+import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'QRcode.dart';
