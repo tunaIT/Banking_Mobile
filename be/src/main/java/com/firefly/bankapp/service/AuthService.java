@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -96,7 +97,7 @@ public class AuthService {
         userEntity.setCardNumber(cardNumber);
         userEntity.setBalance(0.0);
         userEntity.setBank("Firefly Bank");
-        userEntity.setPassword(registerDto.getPassword());
+        userEntity.setPassword(BCrypt.hashpw(registerDto.getPassword(), BCrypt.gensalt()));
         userEntity.setCreated(LocalDateTime.now());
         userEntity.setUpdated(LocalDateTime.now());
         return userDao.save(userEntity);
@@ -113,7 +114,9 @@ public class AuthService {
         UserEntity userEntity = userDao.findByEmail(email).orElseThrow(
                 () -> new EmptyResultDataAccessException("User not found", 1)
         );
-        if (userEntity.getPassword().equals(password)) {
+        //userEntity.getPassword().equals(password)
+        System.out.printf("" + BCrypt.checkpw(password, userEntity.getPassword()));
+        if (BCrypt.checkpw(password, userEntity.getPassword())) {
             LoginReponseBodyDto loginReponseBodyDto = new LoginReponseBodyDto();
             loginReponseBodyDto.setToken(jwtUtil.generateToken(userEntity));
             loginReponseBodyDto.setUser(userMapper.entityToDto(userEntity));
@@ -207,7 +210,8 @@ public class AuthService {
         if (!changePasswordRequest.getPassword().equals(changePasswordRequest.getRepeatPassword())) {
             throw new AppException(ErrorCode.REPEAT_PASSWORD_INVALID);
         }
-        userDao.updatePassword(email, changePasswordRequest.getPassword());
+
+        userDao.updatePassword(email, BCrypt.hashpw(changePasswordRequest.getPassword(), BCrypt.gensalt()));
         return ResponseEntity.ok("Password has been changed!");
     }
 }
