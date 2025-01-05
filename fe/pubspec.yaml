@@ -11,8 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  qr_code_scanner: ^1.0.0
-  url_launcher: ^6.1.7  # Để mở URL thanh toán
+#  qr_code_scanner: ^1.0.0
+#  url_launcher: ^6.1.7  # Để mở URL thanh toán
 
 
 
