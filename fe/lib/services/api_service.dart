@@ -23,10 +23,8 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        // Nếu đăng nhập thành công, trả về token
-        return json.decode(response.body);
+        return json.decode(response.body); // Trả về token nếu thành công
       } else {
-        // Trả về lỗi nếu có
         return {'error': 'Login failed. Please check your credentials.'};
       }
     } catch (e) {
@@ -54,10 +52,8 @@ class ApiService {
       );
 
       if (response.statusCode == 201) {
-        // Nếu đăng ký thành công, trả về dữ liệu phản hồi
-        return json.decode(response.body);
+        return json.decode(response.body); // Trả về dữ liệu phản hồi
       } else {
-        // Trả về lỗi nếu có
         return {'error': 'Registration failed. Please try again.'};
       }
     } catch (e) {
@@ -65,34 +61,47 @@ class ApiService {
     }
   }
 
-  // Phương thức lấy tên người dùng
+  // Phương thức lấy thông tin người dùng
   Future<Map<String, dynamic>> getUserInfo(String token) async {
-    final response = await http.get(
-      Uri.parse('https://api.example.com/user'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    final url = Uri.parse('$baseUrl/user'); // URL API lấy thông tin người dùng
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load user info');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {'error': 'Failed to fetch user info.'};
+      }
+    } catch (e) {
+      return {'error': 'An error occurred: $e'};
     }
   }
-  // phuong thuc chuyen doi tien te
-  static const String _apiUrl_other =
+
+  // Phương thức chuyển đổi tiền tệ
+  static const String _apiUrlCurrency =
       "https://api.freecurrencyapi.com/v1/latest?apikey=fca_live_ZAQJFYT8lTFNWTTPtKpQLw329ifSJjhzALPjLHQB";
+
   Future<Map<String, dynamic>> fetchRates() async {
-    final response = await http.get(Uri.parse(_apiUrl_other));
-    if (response.statusCode == 200) {
-      return json.decode(response.body)['data'];
-    } else {
-      throw Exception('Failed to load exchange rates');
+    try {
+      final response = await http.get(Uri.parse(_apiUrlCurrency));
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['data'];
+      } else {
+        return {'error': 'Failed to load exchange rates.'};
+      }
+    } catch (e) {
+      return {'error': 'An error occurred: $e'};
     }
   }
 
   // Phương thức lấy mã QR
   Future<Uint8List?> fetchQrCode(String token) async {
-    final url = Uri.parse('$baseUrl/auth/generate-qr');
+    final url = Uri.parse('$baseUrl/auth/generate-qr'); // URL API lấy mã QR
+
     try {
       final response = await http.post(
         url,
@@ -102,7 +111,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return response.bodyBytes; // Trả về byte array của mã QR
+        return response.bodyBytes; // Trả về mã QR dưới dạng byte array
       } else {
         print('Error fetching QR Code: ${response.statusCode}');
         return null;
@@ -112,5 +121,78 @@ class ApiService {
       return null;
     }
   }
-}
 
+  // Phương thức xác thực email
+  Future<Map<String, dynamic>> verifyEmail(String email) async {
+    final url = Uri.parse('$baseUrl/auth/verifyEmail/$email'); // URL API xác thực email
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body); // Nếu thành công, trả về dữ liệu phản hồi
+      } else {
+        return {'error': 'Email verification failed.'};
+      }
+    } catch (e) {
+      return {'error': 'An error occurred: $e'};
+    }
+  }
+
+  // Phương thức xác thực OTP
+  Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final url = Uri.parse('$baseUrl/auth/verifyOtp'); // API xác thực OTP
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'otp': otp}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body); // Trả về phản hồi thành công
+      } else {
+        return {'error': 'OTP verification failed.'};
+      }
+    } catch (e) {
+      return {'error': 'An error occurred: $e'};
+    }
+  }
+
+// Phương thức thay đổi mật khẩu
+  Future<Map<String, dynamic>> changePassword({
+    required String email,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final url = Uri.parse('$baseUrl/auth/changePassword'); // API đổi mật khẩu
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,               // Gửi email
+          'password': newPassword,      // Gửi mật khẩu mới
+          'repeatPassword': confirmPassword,  // Gửi mật khẩu xác nhận
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body); // Trả về phản hồi thành công
+      } else {
+        return {'error': 'Password change failed. Status code: ${response.statusCode}'};
+      }
+    } catch (e) {
+      return {'error': 'An error occurred: $e'};
+    }
+  }
+
+}

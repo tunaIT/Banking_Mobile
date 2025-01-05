@@ -1,38 +1,56 @@
-import 'package:fe/screens/new_password.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fe/services/api_service.dart'; // Import file ApiService
-import 'sign_in.dart';
-import 'package:fe/screens/new_password.dart';
-import 'package:fe/screens/verify_code.dart';
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'new_password.dart';
+import 'package:fe/services/api_service.dart';
+class VerifyCodeScreen extends StatefulWidget {
+  final String email;
+
+  const VerifyCodeScreen({super.key, required this.email});
 
   @override
-  _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
+  _VerifyCodeScreenState createState() => _VerifyCodeScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final TextEditingController _emailController = TextEditingController();
+class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
+  final _otpController = TextEditingController();
+  bool isLoading = false;
+  String errorMessage = '';
 
-  // Hàm gọi API để xác thực email
-  Future<void> verifyEmail(String email) async {
-    ApiService apiService = ApiService(); // Khởi tạo ApiService
-    final result = await apiService.verifyEmail(email); // Gọi phương thức xác thực email
+  Future<void> verifyOtp() async {
+    if (_otpController.text.isNotEmpty) {
+      setState(() {
+        isLoading = true;
+        errorMessage = ''; // Reset error message before API call
+      });
 
-    if (result.containsKey('error')) {
-      // Nếu có lỗi từ API
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['error'])),
+      final response = await ApiService().verifyOtp(
+        email: widget.email,
+        otp: _otpController.text,
       );
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.containsKey('error')) {
+        setState(() {
+          errorMessage = response['error'];
+        });
+      } else {
+        // Chuyển tới màn hình NewPasswordScreen khi xác thực OTP thành công
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NewPasswordScreen(email: widget.email),
+          ),
+        );
+      }
     } else {
-      // Nếu xác thực thành công, chuyển sang màn hình VerifyCodeScreen
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => VerifyCodeScreen(email: email), // Truyền email
-        ),
-      );
+      setState(() {
+        errorMessage = 'Please enter the OTP code.';
+      });
     }
   }
 
@@ -40,21 +58,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2136D6),
         elevation: 0,
+        backgroundColor: const Color(0xFF2136D6),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SignInScreen(),
-              ),
-            );
+            Navigator.pop(context);
           },
         ),
         title: const Text(
-          'Forgot Password',
+          'Verify Code',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
@@ -80,22 +93,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Enter your email address',
-                    style: TextStyle(
+                  Text(
+                    'We sent a code to ${widget.email}', // Hiển thị email
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.singleLineFormatter,
+                      FilteringTextInputFormatter.digitsOnly,
                     ],
                     decoration: InputDecoration(
-                      hintText: 'example@gmail.com',
+                      hintText: 'Enter the code',
                       filled: true,
                       fillColor: Colors.grey.shade100,
                       border: OutlineInputBorder(
@@ -105,10 +118,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'We will send a code to your registered email address to reset your password',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
+                  if (errorMessage.isNotEmpty)
+                    Text(
+                      errorMessage,
+                      style: TextStyle(color: Colors.red),
+                    ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
@@ -120,18 +134,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      onPressed: () {
-                        String email = _emailController.text;
-                        if (email.isNotEmpty && email.contains('@')) {
-                          verifyEmail(email); // Gọi API để xác thực email
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a valid email address')),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Send',
+                      onPressed: isLoading ? null : verifyOtp,
+                      child: isLoading
+                          ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                          : const Text(
+                        'Verify',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -149,5 +158,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-
-
