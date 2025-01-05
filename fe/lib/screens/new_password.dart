@@ -1,7 +1,10 @@
+import 'package:fe/screens/sign_in.dart';
 import 'package:flutter/material.dart';
-
+import 'package:fe/services/api_service.dart';
 class NewPasswordScreen extends StatefulWidget {
-  const NewPasswordScreen({super.key});
+  final String email; // Thêm biến email từ màn hình trước
+
+  const NewPasswordScreen({super.key, required this.email});
 
   @override
   State<NewPasswordScreen> createState() => _NewPasswordScreenState();
@@ -12,6 +15,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
   bool isPasswordChanged = false; // Biến trạng thái để quản lý giao diện
+  bool isLoading = false; // Biến trạng thái khi đang gửi yêu cầu
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -20,6 +24,56 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _changePassword() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        isLoading = true;
+      });
+
+      // Gọi API để thay đổi mật khẩu
+      final response = await ApiService().changePassword(
+        email: widget.email,
+        newPassword: _passwordController.text,
+        confirmPassword: _confirmPasswordController.text, // Gửi mật khẩu xác nhận
+      );
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.containsKey('error')) {
+        // Hiển thị lỗi nếu có
+        _showErrorDialog(response['error']);
+      } else {
+        // Nếu thành công, hiển thị giao diện thay đổi mật khẩu thành công
+        setState(() {
+          isPasswordChanged = true;
+        });
+      }
+    }
+  }
+
+  // Hàm hiển thị dialog lỗi
+  void _showErrorDialog(String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(error),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -160,14 +214,12 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        setState(() {
-                          isPasswordChanged = true;
-                        });
-                      }
-                    },
-                    child: const Text(
+                    onPressed: isLoading ? null : _changePassword, // Disable button khi đang gửi yêu cầu
+                    child: isLoading
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : const Text(
                       'Change Password',
                       style: TextStyle(
                         fontSize: 16,
@@ -225,7 +277,12 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SignInScreen(),
+                ),
+              );
             },
             child: const Text(
               'Ok',
