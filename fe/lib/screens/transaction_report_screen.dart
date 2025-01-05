@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:fe/services/api_service.dart';
 import 'package:fe/services/token_service.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class Transaction {
 
 // Lấy thông tin người dùng
 Future<Map<String, dynamic>> getUserInfo(String token) async {
-  final String baseUrl = "http://192.168.1.99:8081";
+  final String baseUrl = "http://10.0.2.2:8081";
   final url = Uri.parse(
       '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
 
@@ -240,7 +240,7 @@ class _TransactionReportScreenState extends State<TransactionReportScreen> {
   }
 
   Widget _buildTransactionItem(Transaction transaction) {
-    final isPositive = transaction.amount > 0;
+    final isPositive = false;
     final amountColor = isPositive ? Colors.blue : Colors.red;
     final amountPrefix = isPositive ? '+ ' : '- ';
 
@@ -268,7 +268,7 @@ class _TransactionReportScreenState extends State<TransactionReportScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.fromUser,
+                  transaction.toUser,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -317,7 +317,6 @@ class _TransactionReportScreenState extends State<TransactionReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // _buildTransactionGroup('Today', todayTransactions),
           const SizedBox(height: 24),
           _buildTransactionGroup('Yesterday', _allTransition),
         ],
