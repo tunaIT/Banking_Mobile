@@ -1,6 +1,8 @@
 import 'package:fe/screens/change_password.dart';
 import 'package:fe/screens/sign_in.dart';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import 'QRcode.dart';
 import 'payment_history_screen.dart';
 import 'package:fe/screens/home.dart';
 
@@ -179,18 +181,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFF2136D6),
+        currentIndex: 0,
+        selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: _onItemTapped, // Xử lý sự kiện khi nhấn vào các mục trong BottomNavigationBar
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.email), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ""),
+        showUnselectedLabels: true,
+        onTap: (index) {
+          switch (index) {
+            case 0: // Home
+              break;
+              // case 1: // Quét QR
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+              //   );
+              break;
+            case 2: // Nhận tiền
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PaymentHistoryScreen()),
+              );
+              break;
+            case 3: // Mã QRcode
+              final apiService = ApiService(); // Tạo instance của ApiService
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const QRcodeScreen(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'token': token, // Truyền token từ màn hình trước
+                    },
+                  ),
+                ),
+              );
+              break;
+            case 4: // Settings
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'token': token, // Truyền token để gọi API trong Settings
+                    },
+                  ),
+                ),
+              );
+              break;
+          }
+        },//     }
+        //   }
+        // },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Quét QR"),
+          BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Nhận tiền"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: "Mã QR"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: "Settings"),
         ],
       ),
     );

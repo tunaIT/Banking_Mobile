@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
         // },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Quét QR"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Quét QR"),
           BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Nhận tiền"),
           BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: "Mã QR"),
           BottomNavigationBarItem(
