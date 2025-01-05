@@ -82,14 +82,12 @@ class _TransferScreenState extends State<TransferScreen> {
         "amount": int.parse(_amountController.text)
       });
       Uri uri = Uri.parse('${ApiService().baseUrl}/user/tranfer');
-      print(uri.toString());
       final response = await http.post(uri,
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
           },
           body: bodyEncoded);
-      print(response.statusCode);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

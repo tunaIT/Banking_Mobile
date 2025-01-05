@@ -114,8 +114,6 @@ public class AuthService {
         UserEntity userEntity = userDao.findByEmail(email).orElseThrow(
                 () -> new EmptyResultDataAccessException("User not found", 1)
         );
-        //userEntity.getPassword().equals(password)
-        System.out.printf("" + BCrypt.checkpw(password, userEntity.getPassword()));
         if (BCrypt.checkpw(password, userEntity.getPassword())) {
             LoginReponseBodyDto loginReponseBodyDto = new LoginReponseBodyDto();
             loginReponseBodyDto.setToken(jwtUtil.generateToken(userEntity));

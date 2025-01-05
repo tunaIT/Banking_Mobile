@@ -40,7 +40,6 @@ class _PayBillScreenState extends State<PayBillScreen> {
       }
       Uri uri =
           Uri.parse('${ApiService().baseUrl}/bill/${_billCodeController.text}');
-      print(uri.toString());
       final response = await http.get(
         uri,
         headers: {
@@ -48,10 +47,8 @@ class _PayBillScreenState extends State<PayBillScreen> {
           'Content-Type': 'application/json',
         },
       );
-      print(response.statusCode);
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
-        print(jsonData["userName"]);
         Navigator.push(
           context,
           MaterialPageRoute(
