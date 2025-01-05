@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:fe/services/api_service.dart'; // Import lớp ApiService
 
 class QRcodeScreen extends StatelessWidget {
-  final ApiService apiService; // Instance của ApiService
 
-  const QRcodeScreen({super.key, required this.apiService});
+  const QRcodeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +35,7 @@ class QRcodeScreen extends StatelessWidget {
       ),
       body: Center(
         child: FutureBuilder<Uint8List?>(
-          future: apiService.fetchQrCode(token), // Gọi phương thức từ ApiService
+          future: ApiService().fetchQrCode(token), // Gọi phương thức từ ApiService
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator(); // Hiển thị khi đang tải

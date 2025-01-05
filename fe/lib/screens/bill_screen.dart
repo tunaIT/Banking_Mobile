@@ -1,25 +1,123 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../services/token_service.dart';
+import 'package:fe/services/api_service.dart';
+import 'bill_payment_screen.dart';
 
-class InternetBillScreen extends StatefulWidget {
-  const InternetBillScreen({super.key});
+class BillDetail {
+  final String userName;
+  final String code;
+  final String category;
+  final String phoneNumber;
+  final String address;
+  final double amount;
+  final double fee;
+  final double tax;
+  final DateTime fromDate;
+  final DateTime toDate;
 
-  @override
-  State<InternetBillScreen> createState() => _InternetBillScreenState();
+  BillDetail({
+    required this.userName,
+    required this.code,
+    required this.phoneNumber,
+    required this.address,
+    required this.category,
+    required this.amount,
+    required this.fee,
+    required this.tax,
+    required this.fromDate,
+    required this.toDate,
+  });
+
+  factory BillDetail.fromJson(dynamic json) {
+    return BillDetail(
+      userName: json['userName'],
+      category: json['category'],
+      code: json['code'],
+      phoneNumber: json['phoneNumber'],
+      address: json['address'],
+      amount: json['amount'].toDouble(),
+      fee: json['fee'].toDouble(),
+      tax: json['tax'].toDouble(),
+      fromDate: DateTime.parse(json['fromDate']),
+      toDate: DateTime.parse(json['toDate']),
+    );
+  }
 }
 
-class _InternetBillScreenState extends State<InternetBillScreen> {
+class BillScreen extends StatefulWidget {
+  final BillDetail model;
+
+  const BillScreen({super.key, required this.model});
+
+  @override
+  State<BillScreen> createState() => _BillScreenState();
+}
+
+class _BillScreenState extends State<BillScreen> {
+
   String? _selectedAccount;
   final _otpController = TextEditingController();
-  final List<String> _accounts = [
-    'Account 1 (**** 1234)',
-    'Account 2 (**** 5678)',
-    'Credit Card (**** 9012)',
-  ];
 
   @override
   void dispose() {
     _otpController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchPayBillCheck() async {
+    try {
+      final token = TokenService.getToken();
+      if (token == null) {
+        throw Exception('No token found');
+      }
+      Uri uri =
+      Uri.parse('${ApiService().baseUrl}/bill/${widget.model.code}/pay');
+      print(uri.toString());
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment successful!'),
+            duration: Duration(seconds: 2), // Thời gian hiển thị message
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+              const  BillPaymentScreen(),
+          ),
+        );
+        print('Response data success'); // Xử lý thêm nếu cần
+      } else {
+        print('Response data fail');
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment error!'),
+              duration: Duration(seconds: 2), // Thời gian hiển thị message
+            ),
+          );
+        });
+      }
+    } catch (e) {
+      setState(() {
+      });
+    } finally {
+      setState(() {
+
+      });
+    }
   }
 
   @override
@@ -30,7 +128,7 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Internet bill'),
+        title:  Text("${widget.model.category} bill"),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -47,13 +145,6 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
                     height: 200,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    '01/10/2019 - 01/11/2019',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -62,13 +153,6 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'All the Bills',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   const SizedBox(height: 24),
                   _buildInfoSection(),
                   const SizedBox(height: 24),
@@ -93,84 +177,12 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey[300]!),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedAccount,
-              hint: const Text(
-                'Choose account/ card',
-                style: TextStyle(color: Colors.grey),
-              ),
-              isExpanded: true,
-              items: _accounts.map((String account) {
-                return DropdownMenuItem<String>(
-                  value: account,
-                  child: Text(account),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedAccount = newValue;
-                });
-              },
-            ),
-          ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          'Get OTP to verify transaction',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _otpController,
-                decoration: InputDecoration(
-                  hintText: 'OTP',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            TextButton(
-              onPressed: () {
-                // TODO: Handle resend OTP
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.grey[100],
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Resend',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
+        // const SizedBox(height: 24),
         ElevatedButton(
           onPressed: () {
-            // TODO: Handle payment
+            _fetchPayBillCheck();
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.deepPurple,
@@ -184,6 +196,7 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.white
             ),
           ),
         ),
@@ -201,21 +214,21 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildInfoRow('Name', 'Jackson Maine'),
+            _buildInfoRow('Name', '${widget.model.userName}'),
             const SizedBox(height: 16),
-            _buildInfoRow('Address', '403 East 4th Street,\nSanta Ana'),
+            _buildInfoRow('Address', '${widget.model.address}'),
             const SizedBox(height: 16),
-            _buildInfoRow('Phone number', '+8424599721'),
+            _buildInfoRow('Phone number', '${widget.model.phoneNumber}'),
             const SizedBox(height: 16),
-            _buildInfoRow('Code', '#2343543'),
+            _buildInfoRow('Code', '${widget.model.code}'),
             const SizedBox(height: 16),
-            _buildInfoRow('From', '01/10/2019'),
+            _buildInfoRow('From', '${widget.model.fromDate}'),
             const SizedBox(height: 16),
-            _buildInfoRow('To', '01/11/2019'),
+            _buildInfoRow('To', '${widget.model.toDate}'),
             const SizedBox(height: 24),
-            _buildPriceRow('Internet fee', 50),
+            _buildPriceRow('Internet fee', widget.model.amount),
             const SizedBox(height: 16),
-            _buildPriceRow('Tax', 10),
+            _buildPriceRow('Tax', widget.model.fee),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Divider(),
@@ -288,7 +301,7 @@ class _InternetBillScreenState extends State<InternetBillScreen> {
           ),
         ),
         Text(
-          '\$$total',
+          "\$${widget.model.amount + widget.model.fee}",
           style: const TextStyle(
             color: Colors.red,
             fontSize: 18,
