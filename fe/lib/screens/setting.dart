@@ -2,7 +2,8 @@ import 'package:fe/screens/change_password.dart';
 import 'package:fe/screens/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'payment_history_screen.dart';
-import 'package:fe/home.dart';
+import 'package:fe/screens/home.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 

@@ -4,7 +4,7 @@ import 'screens/sign_in.dart';
 import 'screens/sign_up.dart';
 import 'screens/forgot_password.dart';
 import 'screens/setting.dart';
-import 'home.dart';
+import 'screens/home.dart';
 void main() {
   runApp(const MyApp());
 }

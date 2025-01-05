@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.fe"> <!-- Chỉ định tên package ở đây -->
+    package="com.example.fe" > <!-- Chỉ định tên package ở đây -->
     <application
         android:label="fe"
         android:name="${applicationName}"
