@@ -1,7 +1,16 @@
+import 'dart:convert';
+
+import 'package:fe/screens/home.dart';
+import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../services/api_service.dart';
+import '../services/token_service.dart';
 
 class TransferScreen extends StatefulWidget {
-  const TransferScreen({super.key});
+  final String? cardNumber;
+
+  const TransferScreen({super.key, this.cardNumber});
 
   @override
   State<TransferScreen> createState() => _TransferScreenState();
@@ -60,6 +69,57 @@ class _TransferScreenState extends State<TransferScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _fetchTransfer() async {
+    try {
+      final token = TokenService.getToken();
+      if (token == null) {
+        throw Exception('No token found');
+      }
+      var bodyEncoded = json.encode({
+        "receiver": _cardNumberController.text,
+        "amount": int.parse(_amountController.text)
+      });
+      Uri uri = Uri.parse('${ApiService().baseUrl}/user/tranfer');
+      print(uri.toString());
+      final response = await http.post(uri,
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: bodyEncoded);
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Transfer successful!'),
+            duration: Duration(seconds: 2), // Thời gian hiển thị message
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+        print('Response data success'); // Xử lý thêm nếu cần
+      } else {
+        print('Response data fail');
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment error!'),
+              duration: Duration(seconds: 2), // Thời gian hiển thị message
+            ),
+          );
+        });
+      }
+    } catch (e) {
+      setState(() {});
+    } finally {
+      setState(() {});
+    }
   }
 
   Widget _buildAccountSection() {
@@ -289,19 +349,19 @@ class _TransferScreenState extends State<TransferScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildDropdownField(
-          value: _selectedBank,
-          items: _banks,
-          hint: 'Choose bank',
-          onChanged: (value) => setState(() => _selectedBank = value),
-        ),
-        const SizedBox(height: 16),
-        _buildDropdownField(
-          value: _selectedBranch,
-          items: _branches,
-          hint: 'Choose branch',
-          onChanged: (value) => setState(() => _selectedBranch = value),
-        ),
+        // _buildDropdownField(
+        //   value: _selectedBank,
+        //   items: _banks,
+        //   hint: 'Choose bank',
+        //   onChanged: (value) => setState(() => _selectedBank = value),
+        // ),
+        // const SizedBox(height: 16),
+        // _buildDropdownField(
+        //   value: _selectedBranch,
+        //   items: _branches,
+        //   hint: 'Choose branch',
+        //   onChanged: (value) => setState(() => _selectedBranch = value),
+        // ),
         const SizedBox(height: 16),
         _buildTextField(
           controller: _nameController,
@@ -309,9 +369,9 @@ class _TransferScreenState extends State<TransferScreen> {
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          controller: _cardNumberController,
-          hint: 'Card number',
-        ),
+            controller: _cardNumberController,
+            hint: 'Card number',
+            text: widget.cardNumber),
         const SizedBox(height: 16),
         _buildTextField(
           controller: _amountController,
@@ -345,9 +405,7 @@ class _TransferScreenState extends State<TransferScreen> {
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              // TODO: Handle transfer
-            }
+            _fetchTransfer();
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.deepPurple[100],
@@ -357,7 +415,7 @@ class _TransferScreenState extends State<TransferScreen> {
             ),
           ),
           child: const Text(
-            'Continue',
+            'Confirm',
             style: TextStyle(
               color: Colors.deepPurple,
               fontSize: 16,
@@ -405,7 +463,11 @@ class _TransferScreenState extends State<TransferScreen> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
+    String? text,
   }) {
+    if (text != null) {
+      controller.text = text;
+    }
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(

@@ -36,7 +36,7 @@ class Transaction {
 
 // Lấy thông tin người dùng
 Future<Map<String, dynamic>> getUserInfo(String token) async {
-  final String baseUrl = "http://10.0.2.2:8081";
+  final String baseUrl = "http://192.168.1.99:8081";
   final url = Uri.parse(
       '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
 

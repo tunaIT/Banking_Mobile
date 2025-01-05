@@ -1,8 +1,10 @@
 import 'package:fe/screens/bill_payment_screen.dart';
 import 'package:fe/screens/pay_bill_screen.dart';
 import 'package:fe/screens/payment_history_screen.dart';
+import 'package:fe/screens/qr_scan.dart';
 import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:fe/screens/transfer_screen.dart';
+import 'package:fe/services/token_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:fe/screens/QRScannerPage.dart';
 
@@ -20,7 +22,7 @@ void main() {
 
 // Lấy thông tin người dùng
 Future<Map<String, dynamic>> getUserInfo(String token) async {
-  final String baseUrl = "http://10.0.2.2:8081";
+  final String baseUrl = "http://192.168.1.99:8081";
   final url = Uri.parse(
       '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
 
@@ -76,16 +78,21 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final arguments =
-    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    if (arguments != null && arguments.containsKey('token')) {
-      token = arguments['token'] as String; // Lưu token vào biến cấp lớp
-      fetchUserName(token!); // Gọi API với token
-    } else {
-      setState(() {
-        userName = 'Token not found';
-      });
+    // final arguments =
+    //     ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    // if (arguments != null && arguments.containsKey('token')) {
+    //   token = arguments['token'] as String; // Lưu token vào biến cấp lớp
+    token = TokenService.getToken();
+    print(token);
+    if (token != null) {
+      fetchUserName(token.toString());
     }
+    // Gọi API với token
+    // } else {
+    //   setState(() {
+    //     userName = 'Token not found';
+    //   });
+    // }
   }
 
   void fetchUserName(String token) async {
@@ -124,16 +131,17 @@ class _HomePageState extends State<HomePage> {
           switch (index) {
             case 0: // Home
               break;
-            // case 1: // Quét QR
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(builder: (context) => const QRScannerScreen()),
-            //   );
+            case 1: // Quét QR
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QRScanPage()),
+              );
               break;
             case 2: // Nhận tiền
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const PaymentHistoryScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const PaymentHistoryScreen()),
               );
               break;
             case 3: // Mã QRcode
@@ -164,7 +172,8 @@ class _HomePageState extends State<HomePage> {
               );
               break;
           }
-        },//     }
+        },
+        //     }
         //   }
         // },
         items: const [
@@ -330,7 +339,8 @@ class _HomePageState extends State<HomePage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const TransactionReportScreen(),
-                          settings: RouteSettings(arguments: {'token': token}), // Truyền token
+                          settings: RouteSettings(
+                              arguments: {'token': token}), // Truyền token
                         ),
                       );
                     },
@@ -394,8 +404,10 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const TransactionReportScreen(),
-                            settings: RouteSettings(arguments: {'token': token}), // Truyền token
+                            builder: (context) =>
+                                const TransactionReportScreen(),
+                            settings: RouteSettings(
+                                arguments: {'token': token}), // Truyền token
                           ),
                         );
                       } else {
@@ -404,7 +416,6 @@ class _HomePageState extends State<HomePage> {
                         );
                       }
                     },
-
                   ),
                   MenuCard(
                     icon: Icons.person_add_alt_1,

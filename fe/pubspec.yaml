@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   http: ^1.2.2
+  mobile_scanner: ^3.0.0
   flutter:
     sdk: flutter
 
