@@ -6,7 +6,7 @@ import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:fe/screens/transfer_screen.dart';
 import 'package:fe/services/token_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:fe/screens/QRScannerPage.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:fe/services/api_service.dart';
@@ -19,13 +19,10 @@ import 'package:fe/screens/QRcode.dart';
 void main() {
   runApp(const MyApp());
 }
-
-// Lấy thông tin người dùng
 Future<Map<String, dynamic>> getUserInfo(String token) async {
   final String baseUrl = "http://192.168.1.99:8081";
   final url = Uri.parse(
       '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
-
   try {
     final response = await http.get(
       url,
@@ -34,7 +31,6 @@ Future<Map<String, dynamic>> getUserInfo(String token) async {
         'Authorization': 'Bearer $token', // Gửi token trong header
       },
     );
-
     if (response.statusCode == 200) {
       return json.decode(response.body); // Trả về thông tin người dùng
     } else {
@@ -44,7 +40,6 @@ Future<Map<String, dynamic>> getUserInfo(String token) async {
     return {'error': 'An error occurred: $e'};
   }
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -178,7 +173,7 @@ class _HomePageState extends State<HomePage> {
         // },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Quét QR"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Quét QR"),
           BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Nhận tiền"),
           BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: "Mã QR"),
           BottomNavigationBarItem(
