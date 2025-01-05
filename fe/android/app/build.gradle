@@ -6,7 +6,7 @@ plugins {
 }
 android {
     namespace 'com.example.fe'
-    compileSdkVersion 33
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {

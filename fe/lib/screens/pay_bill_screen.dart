@@ -16,8 +16,6 @@ class _PayBillScreenState extends State<PayBillScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedCompany;
   final _billCodeController = TextEditingController();
-
-  final List<String> _companies = ['Capi Telecom', 'VNPay', 'Momo', 'ZaloPay'];
   bool _isLoading = false;
   String? _statusMessage;
 
@@ -40,10 +38,10 @@ class _PayBillScreenState extends State<PayBillScreen> {
       if (token == null) {
         throw Exception('No token found');
       }
-      Uri uri = Uri.parse(
-          '${ApiService().baseUrl}/bill/${_billCodeController.text}/pay');
+      Uri uri =
+          Uri.parse('${ApiService().baseUrl}/bill/${_billCodeController.text}');
       print(uri.toString());
-      final response = await http.post(
+      final response = await http.get(
         uri,
         headers: {
           'Authorization': 'Bearer $token',
@@ -52,15 +50,17 @@ class _PayBillScreenState extends State<PayBillScreen> {
       );
       print(response.statusCode);
       if (response.statusCode == 200) {
+        final dynamic jsonData = json.decode(response.body);
+        print(jsonData["userName"]);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const BillScreen(),
+            builder: (context) =>
+                BillScreen(model: BillDetail.fromJson(jsonData)),
           ),
         );
         print('Response data success'); // Xử lý thêm nếu cần
       } else {
-
         print('Response data fail');
         setState(() {
           _statusMessage =
@@ -95,43 +95,6 @@ class _PayBillScreenState extends State<PayBillScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedCompany,
-                    hint: const Text(
-                      'Choose company',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    items: _companies.map((String company) {
-                      return DropdownMenuItem<String>(
-                        value: company,
-                        child: Text(company),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedCompany = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a company';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(height: 20),
               const Text(
                 'Type internet bill code',
@@ -185,10 +148,9 @@ class _PayBillScreenState extends State<PayBillScreen> {
                 child: const Text(
                   'Check',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white
-                  ),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
               ),
             ],
