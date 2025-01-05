@@ -19,7 +19,27 @@ import 'package:fe/screens/QRcode.dart';
 void main() {
   runApp(const MyApp());
 }
-
+Future<Map<String, dynamic>> getUserInfo(String token) async {
+  final String baseUrl = "http://192.168.1.99:8081";
+  final url = Uri.parse(
+      '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Gửi token trong header
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body); // Trả về thông tin người dùng
+    } else {
+      throw Exception('Failed to fetch user info');
+    }
+  } catch (e) {
+    return {'error': 'An error occurred: $e'};
+  }
+}
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
