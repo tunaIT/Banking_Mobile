@@ -3,12 +3,16 @@ import 'package:fe/screens/pay_bill_screen.dart';
 import 'package:fe/screens/payment_history_screen.dart';
 import 'package:fe/screens/transaction_report_screen.dart';
 import 'package:fe/screens/transfer_screen.dart';
-// import 'package:fe/screens/QRScannerScreen.dart';
 import 'package:http/http.dart' as http;
+import 'package:fe/screens/QRScannerPage.dart';
+
 import 'package:flutter/material.dart';
-import 'screens/api_service.dart';
+import 'package:fe/services/api_service.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'screens/setting.dart';
+import 'setting.dart';
+import 'exchange_rate.dart';
+import 'package:fe/screens/QRcode.dart';
 
 void main() {
   runApp(const MyApp());
@@ -132,7 +136,21 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => const PaymentHistoryScreen()),
               );
               break;
-            case 3: // Settings
+            case 3: // Mã QRcode
+              final apiService = ApiService(); // Tạo instance của ApiService
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const QRcodeScreen(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'token': token, // Truyền token từ màn hình trước
+                    },
+                  ),
+                ),
+              );
+              break;
+            case 4: // Settings
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -153,6 +171,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Quét QR"),
           BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Nhận tiền"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: "Mã QR"),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: "Settings"),
         ],
@@ -330,8 +349,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   MenuCard(
                     icon: Icons.atm,
-                    label: "Withdraw",
-                    onTap: () {},
+                    label: "Currency Converter",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CurrencyConverterPage(),
+                        ),
+                      );
+                    },
                   ),
                   MenuCard(
                     icon: Icons.phone_android,

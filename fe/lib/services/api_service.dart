@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -75,6 +76,40 @@ class ApiService {
       return json.decode(response.body);
     } else {
       throw Exception('Failed to load user info');
+    }
+  }
+  // phuong thuc chuyen doi tien te
+  static const String _apiUrl_other =
+      "https://api.freecurrencyapi.com/v1/latest?apikey=fca_live_ZAQJFYT8lTFNWTTPtKpQLw329ifSJjhzALPjLHQB";
+  Future<Map<String, dynamic>> fetchRates() async {
+    final response = await http.get(Uri.parse(_apiUrl_other));
+    if (response.statusCode == 200) {
+      return json.decode(response.body)['data'];
+    } else {
+      throw Exception('Failed to load exchange rates');
+    }
+  }
+
+  // Phương thức lấy mã QR
+  Future<Uint8List?> fetchQrCode(String token) async {
+    final url = Uri.parse('$baseUrl/auth/generate-qr');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return response.bodyBytes; // Trả về byte array của mã QR
+      } else {
+        print('Error fetching QR Code: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error: $e');
+      return null;
     }
   }
 }

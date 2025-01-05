@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../services/token_service.dart';
-import 'api_service.dart';
+import 'package:fe/services/api_service.dart';
 import 'bill_payment_screen.dart';
 
 class BillDetail {
