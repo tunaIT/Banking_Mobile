@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'package:fe/screens/bill_screen.dart';
 import 'package:flutter/material.dart';
+import '../services/token_service.dart';
+import 'api_service.dart';
+import 'package:http/http.dart' as http;
 
 class PayBillScreen extends StatefulWidget {
   const PayBillScreen({super.key});
@@ -11,8 +16,8 @@ class _PayBillScreenState extends State<PayBillScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedCompany;
   final _billCodeController = TextEditingController();
-
-  final List<String> _companies = ['Capi Telecom', 'VNPay', 'Momo', 'ZaloPay'];
+  bool _isLoading = false;
+  String? _statusMessage;
 
   @override
   void dispose() {
@@ -21,10 +26,55 @@ class _PayBillScreenState extends State<PayBillScreen> {
   }
 
   void _handleCheck() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Handle check logic
-      print('Company: $_selectedCompany');
-      print('Bill Code: ${_billCodeController.text}');
+    // TODO: Handle check logic
+    print('Company: $_selectedCompany');
+    print('Bill Code: ${_billCodeController.text}');
+    _fetchPayBillCheck();
+  }
+
+  Future<void> _fetchPayBillCheck() async {
+    try {
+      final token = TokenService.getToken();
+      if (token == null) {
+        throw Exception('No token found');
+      }
+      Uri uri =
+          Uri.parse('${ApiService().baseUrl}/bill/${_billCodeController.text}');
+      print(uri.toString());
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        final dynamic jsonData = json.decode(response.body);
+        print(jsonData["userName"]);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                BillScreen(model: BillDetail.fromJson(jsonData)),
+          ),
+        );
+        print('Response data success'); // Xử lý thêm nếu cần
+      } else {
+        print('Response data fail');
+        setState(() {
+          _statusMessage =
+              'Failed to retrieve bill information. Error: ${response.reasonPhrase}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'An error occurred: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -45,43 +95,6 @@ class _PayBillScreenState extends State<PayBillScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedCompany,
-                    hint: const Text(
-                      'Choose company',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    items: _companies.map((String company) {
-                      return DropdownMenuItem<String>(
-                        value: company,
-                        child: Text(company),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedCompany = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a company';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(height: 20),
               const Text(
                 'Type internet bill code',
@@ -126,7 +139,7 @@ class _PayBillScreenState extends State<PayBillScreen> {
               ElevatedButton(
                 onPressed: _handleCheck,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
+                  backgroundColor: Colors.blueAccent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -135,9 +148,9 @@ class _PayBillScreenState extends State<PayBillScreen> {
                 child: const Text(
                   'Check',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
               ),
             ],
