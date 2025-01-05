@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.99:8081"; // URL cơ bản của API
+  final String baseUrl = "http://10.0.2.2:8081"; // URL cơ bản của API
 
   // Phương thức đăng nhập
   Future<Map<String, dynamic>> login({
@@ -61,26 +61,48 @@ class ApiService {
     }
   }
 
-  // Phương thức lấy thông tin người dùng
+  // // Phương thức lấy thông tin người dùng
+  // Future<Map<String, dynamic>> getUserInfo(String token) async {
+  //   final url = Uri.parse('$baseUrl/user'); // URL API lấy thông tin người dùng
+  //
+  //   try {
+  //     final response = await http.get(
+  //       url,
+  //       headers: {'Authorization': 'Bearer $token'},
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       return json.decode(response.body);
+  //     } else {
+  //       return {'error': 'Failed to fetch user info.'};
+  //     }
+  //   } catch (e) {
+  //     return {'error': 'An error occurred: $e'};
+  //   }
+  // }
+// Lấy thông tin người dùng
   Future<Map<String, dynamic>> getUserInfo(String token) async {
-    final url = Uri.parse('$baseUrl/user'); // URL API lấy thông tin người dùng
+    final url = Uri.parse(
+        '$baseUrl/user/current-user'); // API endpoint để lấy thông tin người dùng
 
     try {
       final response = await http.get(
         url,
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // Gửi token trong header
+        },
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        return json.decode(response.body); // Trả về thông tin người dùng
       } else {
-        return {'error': 'Failed to fetch user info.'};
+        throw Exception('Failed to fetch user info');
       }
     } catch (e) {
       return {'error': 'An error occurred: $e'};
     }
   }
-
   // Phương thức chuyển đổi tiền tệ
   static const String _apiUrlCurrency =
       "https://api.freecurrencyapi.com/v1/latest?apikey=fca_live_ZAQJFYT8lTFNWTTPtKpQLw329ifSJjhzALPjLHQB";
