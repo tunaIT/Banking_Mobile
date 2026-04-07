@@ -27,7 +27,6 @@ The **Mobile Banking System** is a full-stack application designed to provide us
 - **Push Notifications**: Instant alerts for account activity.
 - **Security**: Data encryption and secure API endpoints.
 
-*(📸 Tip: Add GIF or screenshots of your app here to impress recruiters immediately!)*
 <br/>
 <div align="center">
   <img src="https://sf-static.upanhlaylink.com/img/image_20260407eb117c9c922cbdc956159eb506badf74.jpg" width="200" />
