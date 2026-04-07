@@ -1,0 +1,83 @@
+# ==============================
+# Global & Node
+# ==============================
+node_modules/
+.DS_Store
+
+# ==============================
+# IDEs
+# ==============================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ==============================
+# Flutter/Dart (Frontend - fe)
+# ==============================
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+fe/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio build artifacts
+android/app/debug/
+android/app/profile/
+android/app/release/
+fe/android/app/debug/
+fe/android/app/profile/
+fe/android/app/release/
+
+# ==============================
+# Spring Boot/Maven (Backend - be)
+# ==============================
+HELP.md
+target/
+be/target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+!**/src/main/**/build/
+!**/src/test/**/build/
